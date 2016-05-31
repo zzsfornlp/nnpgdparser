@@ -1,0 +1,15 @@
+M 6
+train ../train.right
+dev ../dev.right
+test ../test.right
+gold ../test.right
+nn_way 1
+nn_momentum 0.6
+nn_lrate 0.1
+#embed_wl ../../w2v/words.lst
+#embed_em ../../w2v/embeddings.txt
+s_mach_fo1 ../po1/nn.mach.best
+s_mach_so1 ../po1/nn.mach.best
+s_mach_so2sib ../po2/nn.mach.best
+s_fo1_cut -1e-3
+o3_toolong 80

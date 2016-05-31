@@ -1,0 +1,58 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+
+using namespace std;
+
+int main(int argc,char ** argv)
+{
+	char* origin = argv[1];
+	char* tag = argv[2];
+	ifstream fo(origin);
+	ifstream ft(tag);
+	int all_tokens = 0;
+	int correct_tokens = 0;
+	while(1){
+		string one[10];
+		string onet;
+		ft >> onet;
+        	//exit
+        	if(!ft){
+			cout << "\n";
+            		break;
+		}
+		for(int i=0;i<10;i++)
+			fo >> one[i];
+		
+		if(one[0]=="1" && all_tokens>0)
+			cout << "\n";
+		//compare
+		int temp = onet.find('_');
+		string tword = onet.substr(0,temp);
+		string ttag = onet.substr(temp+1,onet.size());
+		if(tword != one[1]){
+            cerr << "Not match word " << one[1] << "/" << tword << endl;
+		}
+		all_tokens ++;
+		if(ttag == one[4])
+            correct_tokens ++;
+        //special for (){}
+        else if(one[4] == "(" || one[4] == ")"){
+            correct_tokens ++;
+            ttag = one[4];
+        }
+        //print out
+        for(int i=0;i<4;i++)
+			cout << one[i] << "\t";
+        cout << ttag << "\t";
+        for(int i=5;i<9;i++)
+			cout << one[i] << "\t";
+        cout << one[9] << "\n";
+
+    }
+    cerr << correct_tokens << "/" << all_tokens << "--" << correct_tokens/(double)all_tokens << endl;
+    return 0;
+}
+
+

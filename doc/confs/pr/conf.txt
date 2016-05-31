@@ -1,0 +1,14 @@
+M 8
+train ../train.right
+dev ../dev.right
+test ../test.right
+gold ../test.right
+s_mach_fo1 ../po1/nn.mach.best
+s_mach_so1 ../po1/nn.mach.best
+s_mach_so2sib ../po2/nn.mach.best
+s_mach_so3g ../po3/nn.mach.best
+nn_wd 0
+nn_iters 1
+nn_iters_dec 0
+o3_toolong 80
+s_fo1_cut -1e-3

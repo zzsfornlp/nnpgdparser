@@ -1,0 +1,188 @@
+nnpgdp --- neural network probabilistic graph-based dependency parser
+
+<the style of the configuration is similar to the one of previous nngdparser>
+========================================
+1.the command
+    Almost all the configuration information should be specified in the configuration file.
+    Assuming the runnable file is "nnpgdp", to invoke the parser, the commands are simple:
+        >> WE strongly recommend that the training and testing should be performed following the CONVETIONS in the second part,that is, each model run in its own folder.
+        >> There are some meta files and temp files which can bring surprising results if not following the CONVETIONS.
+    We only support corpus of 2008 conll's format, please look at section 4 for the format and the requires for the input corpus.
+    1.1 traning
+        nnpgdp <conf-file>
+    ##if test file specified for training, the testing will be run right after the training.
+    1.2 testing
+        nnpgdp <conf-file> <mach-name>
+    ##notice that the mach-name when testing should be the full-name for the mach file, and this is not the same as the mach-prefix-name in the options.
+
+2.CONVETIONS
+    The configuration's design for the parser is kind of a mess, but if you follow the conventions stated here, training and testing will be much easier.
+    2.1 !! Simply put each model in separate directories would make it easier. -- For example for first-order training with the example conf in the doc/conf/po1 directory:
+        For example, for training a first-order model, here are the steps:
+            (1) make a directory and cd to it.
+            (2) create the configuration file in the directory(for example, the "conf.txt" provided in the document);
+                >> please specify the conf-file so that the model's files (such as dict-file or machine-file) are all in this directory.
+            (3) for training, run the command: <nngdparser-runable-file> <conf-file>
+                >> the resulting models include dict-file and machine-file(the one ended with ".best")
+            (4) for testing, tun the command: <nngdparser-runable-file> <conf-file> <best-machine-name>
+        >> Notice the dataset and (optional) embedding file should be in the specified format as described in sectino 4
+    2.2 ?? what those files means 
+        When training and testing, there will be many model files or tmp files in the directory:
+        2.2.1 !! important files (their names can be changed in options)
+            directory file(default as vocab.dict); best machine file(default as nn.mach.best); output file(default as output.txt)
+        2.2.2 some temp files (not important after training)
+            output file for dev corpus(output.txt.dev), temp machine file(nn.mach.curr)
+			
+3.configuration files:
+    -- One option should take one line, which contains two parts(continuous part which can be read by "fin>>str;") separated by blanks; lines start with '#' will be ignored.
+    3.1 !!!Options which MUST be provided (with no default values):
+        M <algorithms-index>
+            The choice of parsing algorithms: (again sorry for the bad form...)
+				0~3: @deprecated please don't use
+				4~6: first-order, second-order (sibling), third-order (grand-sibling) methods
+				7~8: ensemble methods for second-order and third-order
+        ------FOR training-------
+        train <train-file>
+            The training corpus, currently only support conll-08 form, see that in the file-format part.
+        dev <dev-file>
+            The develop corpus, which is used to specify some hyperparameters for nn, currently MUST be specified.
+        ------FOR testing-------
+        test <test-file>
+            The test corpus, testing will be performed right after training if this option is provided.
+        gold <test-file>
+            The gold file for test file, which is used to evaluate the result.
+    3.2 Other files' names
+        output <output-file>
+            The output prediction file's name. [default as "output.txt"]
+        dict <dict-file>
+            Important dictionary file, with the same order of machine's embeddings. [default as "vocab.dict"]
+        mach-prefix <mach-prefix name>
+            The prefix for the machines's names, the suffixes are ".curr" for temp machine, ".best" for best machine, we'll usually use the best machine. [default as "nn.mach"]
+            >>In the default situations, "nn.mach.curr","nn.mach.best" will be names for temp machine, best machine.
+    3.3 Hyper-parameters for training
+        ## by default, we adjust the learning rate by the results of dev corpus, we will cut learning rate if dev's result gets worse.
+        nn_lrate <learning-rate>
+            The starting learning rate. [default 0.1]
+        nn_iters <iterations>
+            The minimal training iterations, real iterations are also influenced by the option nn_iters_dec. [default 12]
+        nn_iters_dec <num>
+            Finish training only after this number of cuts of learning rate, which may make the real iterations more than specified nn_iters. [default is 1]
+        nn_lmult <multiplier>
+            If less than 0, means each time cut the learning rate by minus nn_lmult;
+            if equal to 0, means no changing learning rate;
+            if bigger than 0, means multiply learning rate by 1/(1+number_of_backwards*nn_lmult) which is cslm's default schedule and doesn't perform as good as cutting methods.
+            >> [default -0.5, which means each time cut to half]
+        nn_wd <weight-decay>
+            L2 regularization hyper-parameter. [default 1e-4]
+		nn_way <training-method>
+			0: sgd, 1: sgd+momentum, 2: adagrad [default 1]
+		nn_momentum <momentum>
+			momentum for train method of sgd+momentum [default 0.6]
+        nn_resample <portion>
+            The portion for the training examples for real training. [default 1, which means use all.]
+        nn_mbatch <batch-size>
+            Mini-batch size. [default -256]
+			-- If less than zero, means after this number of words. Otherwise, means after this number of sentences.
+    3.3 Scoring
+        s_mach_fo1 <o1m-filter-file>
+            The o1mach used for pruning for high-order parsing. [No default value, !!MUST provide for high-order parsing]
+        s_mach_so1 <o1-mach-file>
+            machine of o1 for score combining when doing high-order parsing.	[No default value.]
+        s_mach_so2sib <o2-mach-file>
+            machine of o2sib-mach for score combining when doing high-order parsing.  [No default value.]
+		s_mach_so3g <o3-mach-file>
+			machine of o3g-mach for score combining when doing high-order parsing.  [No default value.]
+		s_p2_reg <reg-coef>
+			the \lambda_s for restraining scores. [default 1e-3]
+		s_fo1_cut <pruning rate>
+			pruning rate for high-order parsing. [default 1e-4]
+			-- If less than zero, means relative prob to the best parent for one modifier node. Otherwise, means absolute prob.
+    3.4 Options for Neural Model
+		>> The architecture of the model is fixed, two hidden layers (and the first one consists of two parts: wr&sr)
+        n_win <window-size>
+			the window size for local window based model. [default 7]
+		n_wsize/n_psize/n_dsize <embedding-size>
+			embedding size for word, pos and distance. [ALL default 50]
+		n_adds <0|1>
+			whether add convolution part of sentence-level information [default 1]
+		n_act <activation>
+			activation function: 0:tanh, 1:hard-tanh, 2:LeRU, 3:tanh-cube, 4:linear [default 0]
+		n_hidden <#num>
+			size of the last hidden layer [default 100]
+		n_wr <#num>
+			size of hidden layer for word representation (from local window based model) [default 200]
+		n_sr <#num>
+			size of hidden layer for sentence representation (from convolution model) [default 100]
+		n_drop <#rate>
+			drop out rate [default 0]
+		n_sl_way <sentence-level way>
+			the way for sentence-level convolution part. 0:Adding+max-pooling, 1:TanhMul+max-pooling, 2:Adding+average-pooling, 3:TanhMul+average-pooling. [default 0]
+		n_sl_filter <filter-window>
+			the filter window size for convolution. [default 3]
+	3.5 Others
+		>> Only text format is supported and the word list and values are seperated, for more information see Section 4.
+	    nn_init_wl <embedding-init-words-file>
+            The words' list of for init embedding.  [No default value.]
+        nn_init_em <embedding-init-embedding-file>
+            The embeddings of for init embedding.  [No default value.]
+        >> when both nn_init_wl and nn_init_em specified, the embeddings of nn will be initialized by them.
+        nn_init_scale <scale-num>
+            The scaling factor for embeddings. [default 1]
+		o3_toolong <#num>
+			skip this one if sentence is too long for high-order parsing in training or backoff to lower-order parsing in testing. [default 150 (real setting is usually around 80)]
+	3.6 Tips
+		// '#' on the first char in a line means comment.
+		Have to admit the confs are quite messy and the author even do not remember some of the options ... But all the options are specified in parts/HypherParameters.h ...
+		Please refer to the example confs in the doc folder as a start ...
+    
+4.Format for corpus and embedding file
+    We ONLY support the format like those in conll 2008, each token take one line with ten fields, and sentences are separated by an empty line.
+    The columns mean: ID,FORM,?,?,PPOS,?,?,?,HEAD,?
+        >> ? means we don't care about that field and there will be a place holder "_", the last field is dependency label which we don't consider for now.
+    For example:
+        1	No	_	_	RB	_	_	_	4	ADV
+        2	,	_	_	,	_	_	_	4	P
+        3	it	_	_	PRP	_	_	_	4	SBJ
+        4	was	_	_	VBD	_	_	_	0	ROOT
+        5	n't	_	_	RB	_	_	_	4	ADV
+        6	Black	_	_	NNP	_	_	_	7	NAME
+        7	Monday	_	_	NNP	_	_	_	4	PRD
+        8	.	_	_	.	_	_	_	4	P
+
+    For our parser(only unlabeled parsing), we only use 3 fields for training and evaluating and 2 for testing:
+        >> For training and evaluating: 2nd-column(FORM,which is the token itself), 5th-column(POS,which is the golden-pos for the token),9th-column(HEAD,the gold result for our prediction)
+        >> For testing: 2nd-column(FORM,which is the token itself), 5th-column(POS,which is the predicted-pos for the token);
+            and we will output our prediction for HEAD in the 9th-column.
+        >> In a word, our parser's prediction only base on the token's form and predicted pos.
+            
+    Usually, the train corpus file will provide 4 fields with golden-pos and correct head, the dev and test file with predicted-pos, the golden file with correct head.
+    >> notice that the dev file should be its golden file and usually the test file will also be golden file for convenience.
+	--------------------
+	The format for embedding files (only for word) are only in text form, and the words and embeddings are seperated in two files, this might be slightly different to the conventions, please notice this.
+	For example, for providing the embedding for init, two files should be prepared and specified in conf file like this, NOTE that the embedding size should correspond to the setting [n_wsize].
+	
+	-------IN CONF-----
+	embed_wl ../../w2v/words.lst
+	embed_em ../../w2v/embeddings.txt
+	-------IN CONF-----
+	
+	-------../../w2v/words.lst---------
+	the
+	of
+	and
+	happy
+	...
+	-------../../w2v/words.lst---------
+	
+	-------../../w2v/embeddings.txt---------
+	0.12 0.34 ...
+	0.23 0.36 ...
+	0.34 0.54 ...
+	0.56 0.47 ...
+	...
+	-------../../w2v/embeddings.txt---------
+	
+	The words and embeddings should be corresponded in the two files, one line at a time.
+	
+zzs
+2016.5

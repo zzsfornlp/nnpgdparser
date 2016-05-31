@@ -1,0 +1,10 @@
+M 4
+train ../train.right
+dev ../dev.right
+test ../test.right
+gold ../test.right
+nn_way 1
+nn_momentum 0.6
+nn_lrate 0.1
+#embed_wl ../../w2v/words.lst
+#embed_em ../../w2v/embeddings.txt

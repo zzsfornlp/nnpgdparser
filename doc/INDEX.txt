@@ -1,0 +1,14 @@
+Index of the doc directory for the nnpgdp.
+
+INDEX.txt 	-> this file
+notes.txt	-> some notes from the author
+run.txt   	-> how to compile and run the parser
+usage.txt 	-> how to provide the conf files
+confs [directory]:
+  -- o*   	-> example configurations for different orders
+  -- notes.txt 	-> some notes of the example configurations
+
+Hope that the documents state them clear ...
+
+zzs
+2016.5

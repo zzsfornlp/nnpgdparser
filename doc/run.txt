@@ -1,0 +1,26 @@
+nnpgdparser: how to compile and run it
+
+------------------------------
+1.How to compile
+
+Change to the top-layer directory of the project, and Run "make" or directly run "bash compile_blas.sh" or "bash compile_mkl.sh" for one-time all-of-them compiling.
+The "nnpgdp" is the runnable file for the parser.
+
+Compiling environments: 
+	this is the environment when we compile it, if you are intereted in compiling in other encironments, please figure out the library dependents.
+	Platform: Linux os
+	Compiler: g++, gcc
+	External Libraries: (ONLY) Boost regex library, Blas library.
+	for more informations of compiling and the libraries, please check out the makefile or the compile script.
+	
+About the blas library:
+	Our neural network directly depends on BLAS library, which can be ATLAS or MKL or some else, the compile_blas.sh/compile_mkl.sh specify the compiling for the first two. Please feel free to change the blas library you would like to use by changing the shell scripts or the Makefile, also compiling errors of <library not found> might indicate that you need to provide the location of the blas library when compiling.
+
+-------------------------------
+2. How to run
+Almost all of the running configurations should be provided by the conf file, for the conf setting, please refer to usage.txt.
+
+
+
+zzs
+2016.5

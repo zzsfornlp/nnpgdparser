@@ -1,0 +1,14 @@
+#include <iostream>
+#include <cstdio>
+
+int main()
+{
+	int c;
+	while((c=getchar()) > 0){
+		if(c>127)
+			putchar(' ');
+		else
+			putchar(c);
+	}
+	return 0;
+}

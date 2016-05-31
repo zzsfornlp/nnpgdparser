@@ -1,0 +1,3 @@
+The four folders are for the three orders and the ensemble examples, and they should be run sequentially because higher-order ones need the lower-order ones as filter and sub-tree scorer.
+The path for the training files and testing files should be provided correctly, for the format see ../usage.txt
+If embedding is provided, please provide the correct path in the correct format, for the format see ../usage.txt
